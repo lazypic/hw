@@ -1,18 +1,17 @@
 package main
 
 import (
-	_ "bytes"
 	"fmt"
 	"github.com/pbnjay/memory"
 	"github.com/shirou/gopsutil/cpu"
-	_ "io"
+	"log"
 	"os"
 	"os/exec"
 	"strings"
 	"syscall"
 )
 
-/*
+/* get windows Disk Size
 func windisk {
 	h := syscall.MustLoadDLL("kernel32.dll")
 	c := h.MustFindProc("GetDiskFreeSpaceExW")
@@ -23,29 +22,36 @@ func windisk {
 		uintptr(unsafe.Pointer(&freeBytes)), nil, nil)
 }
 */
-func disk() {
+func getDiskSize() {
 	var stat syscall.Statfs_t
-	wd, _ := os.Getwd()
+	wd, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
 	syscall.Statfs(wd, &stat)
 	// byte to gb
 	// divide the digital storage value by 1e+9
-	fmt.Printf("disk %d GB\n", (stat.Blocks*uint64(stat.Bsize))/1e9)
+	fmt.Printf("Disk:%dGB\n", (stat.Blocks*uint64(stat.Bsize))/1e9)
 }
 
+// 윈도우즈에서 그래픽카드를 가지고오는 함수
 func getWinGPU() string {
 	Info := exec.Command("cmd", "/C", "wmic path win32_VideoController get name")
 	Info.SysProcAttr = &syscall.SysProcAttr{}
-	History, _ := Info.Output()
-
+	History, err := Info.Output()
+	if err != nil {
+		log.Fatal(err)
+	}
 	return strings.Replace(string(History), "Name", "", -1)
 }
 
-func getPosix() {
+// mac, linux에서만 정보를 가지고 올 수 있다.
+func getGraphicCard() {
 	// $ glxinfo | grep "OpenGL renderer string"
-	findStr := "OpenGL renderer string"
+	findStr := "OpenGL renderer string:"
 	results, err := exec.Command("glxinfo").Output()
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 	for _, line := range strings.Split(string(results), "\n") {
 		if !strings.Contains(line, findStr) {
@@ -56,42 +62,23 @@ func getPosix() {
 	}
 }
 
-/*
-	c2 := exec.Command("grep", findStr)
-	r, w := io.Pipe()
-	c1.Stdout = w
-	c2.Stdin = r
-	var b2 bytes.Buffer
-	c2.Stdout = &b2
-	c1.Start()
-	c2.Start()
-	c1.Wait()
-	w.Close()
-	c2.Wait()
-	io.Copy(os.Stdout, &b2)
-	fmt.Println("g", b2.String())
-	fmt.Println("f", findStr)
-	fmt.Println("r", strings.TrimPrefix(b2.String(), findStr))
-	return strings.TrimPrefix(b2.String(), findStr)
-*/
-func main() {
-	// CPU
+func getCpu() {
 	is, err := cpu.Info()
 	if err != nil {
-		fmt.Printf("Error getting CPU info: %v", err)
+		log.Fatal(err)
 	}
 	for _, i := range is {
 		fmt.Println(i.ModelName)
 	}
-	// memory
-	fmt.Printf("Mem: %dG\n", memory.TotalMemory()/1e9)
+}
 
-	// disk
-	disk()
+func getMemSize() {
+	fmt.Printf("Mem:%dG\n", memory.TotalMemory()/1e9)
+}
 
-	// gpu
-	// window
-	// mac
-	getPosix()
-	// linux
+func main() {
+	getCpu()
+	getGraphicCard()
+	getMemSize()
+	getDiskSize()
 }
