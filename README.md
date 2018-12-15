@@ -1,6 +1,9 @@
 # hw
 Simply show hardware information.
 
+A friend has to manage his company assets(many computers).
+He wanted information to be printed out very simple.
+
 ```bash
 $ hw
 
