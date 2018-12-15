@@ -22,6 +22,7 @@ func windisk {
 		uintptr(unsafe.Pointer(&freeBytes)), nil, nil)
 }
 */
+
 func getDiskSize() {
 	var stat syscall.Statfs_t
 	wd, err := os.Getwd()
