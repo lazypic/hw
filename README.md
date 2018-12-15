@@ -11,6 +11,6 @@ Disk:488GB
 ```
 
 ## Test
-[x] macOS
-[ ] linux
-[ ] windows
+- [x] macOS
+- [ ] linux
+- [ ] windows
