@@ -16,10 +16,13 @@ func windisk {
 	h := syscall.MustLoadDLL("kernel32.dll")
 	c := h.MustFindProc("GetDiskFreeSpaceExW")
 
-	var freeBytes int64
-
-	_, _, err := c.Call(uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(wd))),
-		uintptr(unsafe.Pointer(&freeBytes)), nil, nil)
+	lpFreeBytesAvailable := int64(0)
+    lpTotalNumberOfBytes := int64(0)
+    lpTotalNumberOfFreeBytes := int64(0)
+    r2, _, err := c.Call(uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr("C:"))),
+        uintptr(unsafe.Pointer(&lpFreeBytesAvailable)),
+        uintptr(unsafe.Pointer(&lpTotalNumberOfBytes)),
+        uintptr(unsafe.Pointer(&lpTotalNumberOfFreeBytes)))
 }
 */
 
@@ -30,9 +33,7 @@ func getDiskSize() {
 		log.Fatal(err)
 	}
 	syscall.Statfs(wd, &stat)
-	// byte to gb
-	// divide the digital storage value by 1e+9
-	fmt.Printf("Disk:%dGB\n", (stat.Blocks*uint64(stat.Bsize))/1e9)
+	fmt.Printf("Disk:%dGB\n", (stat.Blocks*uint64(stat.Bsize))/1024/1024/1024.0)
 }
 
 // 윈도우즈에서 그래픽카드를 가지고오는 함수
@@ -74,7 +75,7 @@ func getCpu() {
 }
 
 func getMemSize() {
-	fmt.Printf("Mem:%dG\n", memory.TotalMemory()/1e9)
+	fmt.Printf("Mem:%dG\n", memory.TotalMemory()/1024/1024/1024.0)
 }
 
 func main() {
